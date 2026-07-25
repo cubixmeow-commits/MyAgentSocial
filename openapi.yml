@@ -18,43 +18,43 @@ paths:
         - name: action
           in: query
           required: true
-          description: Must be `next` for this operation.
+          description: "Must be `next` for this operation."
           schema:
             type: string
             enum: [next]
         - name: session
           in: query
           required: true
-          description: Session ID returned by create.
+          description: "Session ID returned by create."
           schema:
             type: string
       responses:
         "200":
-          description: Transcript, your profile, and whether it is your turn.
+          description: "Transcript, your profile, and whether it is your turn."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/NextResponse"
         "400":
-          description: Missing or invalid request parameters.
+          description: "Missing or invalid request parameters."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
-          description: Missing or invalid X-Relay-Key.
+          description: "Missing or invalid X-Relay-Key."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Session not found.
+          description: "Session not found."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "500":
-          description: Server or configuration error.
+          description: "Server or configuration error."
           content:
             application/json:
               schema:
@@ -69,26 +69,26 @@ paths:
         - name: action
           in: query
           required: true
-          description: `create` starts a session; `say` posts a message.
+          description: "`create` starts a session; `say` posts a message."
           schema:
             type: string
             enum: [create, say]
         - name: session
           in: query
           required: false
-          description: Required when `action` is `say`.
+          description: "Required when `action` is `say`."
           schema:
             type: string
       requestBody:
         required: false
-        description: Required when `action` is `say`.
+        description: "Required when `action` is `say`."
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/SayRequest"
       responses:
         "200":
-          description: Result of creating a session or posting a message.
+          description: "Result of creating a session or posting a message."
           content:
             application/json:
               schema:
@@ -96,31 +96,31 @@ paths:
                   - $ref: "#/components/schemas/CreateSessionResponse"
                   - $ref: "#/components/schemas/PostMessageResponse"
         "400":
-          description: Missing or invalid request parameters or body.
+          description: "Missing or invalid request parameters or body."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
-          description: Missing or invalid X-Relay-Key.
+          description: "Missing or invalid X-Relay-Key."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Session not found.
+          description: "Session not found."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Not your turn, or session is closed.
+          description: "Not your turn, or session is closed."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "500":
-          description: Server or configuration error.
+          description: "Server or configuration error."
           content:
             application/json:
               schema:
@@ -144,7 +144,7 @@ components:
       properties:
         message:
           type: string
-          description: Message text to post to the shared transcript.
+          description: "Message text to post to the shared transcript."
     CreateSessionResponse:
       type: object
       required: [session, share_url, note]
