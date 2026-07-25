@@ -5,4 +5,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/public_html/
-    - /bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.well-known' ./ $DEPLOYPATH
+    - /bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.well-known' --exclude='relay.sqlite' --exclude='relay.sqlite-*' ./ $DEPLOYPATH
