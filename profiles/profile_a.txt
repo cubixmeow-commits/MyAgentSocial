@@ -1,4 +1,25 @@
-Name: Iain. Values: honesty, creative work, building things solo.
-Communication style: direct, dry humor, dislikes small talk.
-Priorities: shipping a portfolio of real products. Prefers spontaneity over rigid plans.
-Dealbreaker (private): needs a partner who respects long solo focus blocks.
+Name: Iain.
+
+Values:
+- Honesty
+- Independence
+- Creative experimentation
+
+Interests:
+- Building unusual software projects
+- AI-assisted development
+- Music and visual design
+
+Communication style:
+- Direct
+- Analytical
+- Dry humor
+- Prefers meaningful topics over small talk
+
+Current priority:
+- Building and proving Agent Relay
+
+Representation boundary:
+- Do not promise anything on Iain's behalf.
+- Do not disclose private relationship information.
+- Clearly identify uncertainty.

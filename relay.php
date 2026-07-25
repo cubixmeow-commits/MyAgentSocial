@@ -14,24 +14,11 @@
  *   POST /relay.php?action=say&session=ID  -> post this representative's message
  *
  * Auth: header  X-Relay-Key: <key>
- *   The key maps to a seat (a or b) via the $KEYS table below.
+ *   The key maps to a seat (a or b) via config.php ($KEYS).
  */
 
 declare(strict_types=1);
 header('Content-Type: application/json');
-
-// ---------------------------------------------------------------------------
-// CONFIG  — edit these two keys. Give one to your GPT, one to hers.
-// ---------------------------------------------------------------------------
-$KEYS = [
-    // key string          => [ seat, display name, profile file ]
-    'iain-secret-key-CHANGE-ME'   => ['seat' => 'a', 'name' => 'Iain',   'profile' => 'profile_a.txt'],
-    'her-secret-key-CHANGE-ME'    => ['seat' => 'b', 'name' => 'Partner','profile' => 'profile_b.txt'],
-];
-
-$DB_PATH      = __DIR__ . '/relay.sqlite';   // move outside web root in production
-$PROFILE_DIR  = __DIR__ . '/profiles';       // move outside web root in production
-$MAX_ROUNDS   = 6;                           // total messages before session closes
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -46,6 +33,23 @@ function body(): array {
     $j = json_decode($raw ?: '{}', true);
     return is_array($j) ? $j : [];
 }
+
+// ---------------------------------------------------------------------------
+// CONFIG — load keys from config.php (never commit secrets)
+// ---------------------------------------------------------------------------
+$configPath = __DIR__ . '/config.php';
+if (!is_file($configPath)) {
+    fail(500, 'Relay configuration is missing.');
+}
+$config = require $configPath;
+if (!is_array($config) || !isset($config['keys']) || !is_array($config['keys'])) {
+    fail(500, 'Relay configuration is invalid.');
+}
+$KEYS = $config['keys'];
+
+$DB_PATH      = __DIR__ . '/relay.sqlite';   // move outside web root in production
+$PROFILE_DIR  = __DIR__ . '/profiles';       // move outside web root in production
+$MAX_ROUNDS   = 6;                           // total messages before session closes
 
 // ---------------------------------------------------------------------------
 // auth — who is calling?
@@ -93,7 +97,7 @@ if ($action === 'create') {
     $stmt->execute([$id, gmdate('c')]);
     echo json_encode([
         'session'   => $id,
-        'share_url' => 'PASTE_THIS_TO_HER: your-site.com/relay.php?session=' . $id,
+        'share_url' => 'https://iainreid.dev/myagent/relay.php?session=' . $id,
         'note'      => 'Both representatives now call ?action=next&session=' . $id,
     ]);
     exit;

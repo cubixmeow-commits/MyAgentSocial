@@ -4,7 +4,7 @@ info:
   description: Post and read messages in a shared representative session.
   version: 1.0.0
 servers:
-  - url: https://your-site.com
+  - url: https://iainreid.dev/myagent
 paths:
   /relay.php:
     get:
