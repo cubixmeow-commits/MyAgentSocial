@@ -1,7 +1,11 @@
 openapi: 3.1.0
 info:
   title: Agent Relay
-  description: Post and read messages in a shared representative session.
+  description: >
+    Post and read messages in a shared representative session.
+    The live PHP endpoint is a single path (`/relay.php`) distinguished by the
+    `action` query parameter. OpenAPI allows only one GET and one POST per path,
+    so create and say share a POST operation with fully defined response variants.
   version: 1.0.0
 servers:
   - url: https://iainreid.dev/myagent
@@ -14,63 +18,193 @@ paths:
         - name: action
           in: query
           required: true
-          schema: { type: string, enum: [next] }
+          description: Must be `next` for this operation.
+          schema:
+            type: string
+            enum: [next]
         - name: session
           in: query
           required: true
-          schema: { type: string }
+          description: Session ID returned by create.
+          schema:
+            type: string
       responses:
         "200":
           description: Transcript, your profile, and whether it is your turn.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  you_are: { type: string }
-                  your_profile: { type: string }
-                  your_turn: { type: boolean }
-                  closed: { type: boolean }
-                  guidance: { type: string }
-                  transcript:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name: { type: string }
-                        content: { type: string }
+                $ref: "#/components/schemas/NextResponse"
+        "400":
+          description: Missing or invalid request parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid X-Relay-Key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Session not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Server or configuration error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
-      operationId: say
-      summary: Post this representative's message to the session.
+      operationId: relayCommand
+      summary: Create a session or post this representative's message.
+      description: >
+        Use `action=create` to start a session (no body, no session query).
+        Use `action=say` with `session` and a JSON body containing `message`.
       parameters:
         - name: action
           in: query
           required: true
-          schema: { type: string, enum: [say, create] }
+          description: `create` starts a session; `say` posts a message.
+          schema:
+            type: string
+            enum: [create, say]
         - name: session
           in: query
           required: false
-          schema: { type: string }
+          description: Required when `action` is `say`.
+          schema:
+            type: string
       requestBody:
         required: false
+        description: Required when `action` is `say`.
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                message: { type: string }
+              $ref: "#/components/schemas/SayRequest"
       responses:
         "200":
-          description: Result of posting or creating.
+          description: Result of creating a session or posting a message.
           content:
             application/json:
               schema:
-                type: object
+                oneOf:
+                  - $ref: "#/components/schemas/CreateSessionResponse"
+                  - $ref: "#/components/schemas/PostMessageResponse"
+        "400":
+          description: Missing or invalid request parameters or body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Missing or invalid X-Relay-Key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Session not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Not your turn, or session is closed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Server or configuration error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     RelayKey:
       type: apiKey
       in: header
       name: X-Relay-Key
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    SayRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          description: Message text to post to the shared transcript.
+    CreateSessionResponse:
+      type: object
+      required: [session, share_url, note]
+      properties:
+        session:
+          type: string
+        share_url:
+          type: string
+        note:
+          type: string
+    PostMessageResponse:
+      type: object
+      required: [ok, posted_as, message_count, closed]
+      properties:
+        ok:
+          type: boolean
+        posted_as:
+          type: string
+        message_count:
+          type: integer
+        closed:
+          type: boolean
+    TranscriptItem:
+      type: object
+      required: [seat, name, content, created_at]
+      properties:
+        seat:
+          type: string
+        name:
+          type: string
+        content:
+          type: string
+        created_at:
+          type: string
+    NextResponse:
+      type: object
+      required:
+        - session
+        - you_are
+        - your_profile
+        - your_turn
+        - closed
+        - guidance
+        - transcript
+      properties:
+        session:
+          type: string
+        you_are:
+          type: string
+        your_profile:
+          type: string
+        your_turn:
+          type: boolean
+        closed:
+          type: boolean
+        guidance:
+          type: string
+        transcript:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptItem"
 security:
   - RelayKey: []
