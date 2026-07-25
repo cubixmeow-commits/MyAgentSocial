@@ -49,7 +49,9 @@ $KEYS = $config['keys'];
 
 $DB_PATH      = __DIR__ . '/relay.sqlite';   // move outside web root in production
 $PROFILE_DIR  = __DIR__ . '/profiles';       // move outside web root in production
-$MAX_ROUNDS   = 6;                           // total messages before session closes
+
+// Soft ceiling so sessions do not grow forever. Publish via git — no config.php edit needed.
+const MAX_CONVERSATION_MESSAGES = 1000;
 
 // ---------------------------------------------------------------------------
 // auth — who is calling?
@@ -157,13 +159,15 @@ if ($action === 'say') {
     $ins = $db->prepare('INSERT INTO messages (session_id, seat, name, content, created_at) VALUES (?, ?, ?, ?, ?)');
     $ins->execute([$sessionId, $me['seat'], $me['name'], $content, gmdate('c')]);
 
-    // close after MAX_ROUNDS total messages
+    // Close only when the configurable message ceiling is reached.
+    // Sessions otherwise stay open so both seats keep alternating turns.
     $count = (int)$db->query('SELECT COUNT(*) FROM messages WHERE session_id = ' . $db->quote($sessionId))->fetchColumn();
-    if ($count >= $MAX_ROUNDS) {
+    $closed = $count >= MAX_CONVERSATION_MESSAGES;
+    if ($closed) {
         $db->prepare('UPDATE sessions SET closed = 1 WHERE id = ?')->execute([$sessionId]);
     }
 
-    echo json_encode(['ok' => true, 'posted_as' => $me['name'], 'message_count' => $count, 'closed' => $count >= $MAX_ROUNDS]);
+    echo json_encode(['ok' => true, 'posted_as' => $me['name'], 'message_count' => $count, 'closed' => $closed]);
     exit;
 }
 
