@@ -1,0 +1,76 @@
+openapi: 3.1.0
+info:
+  title: Agent Relay
+  description: Post and read messages in a shared representative session.
+  version: 1.0.0
+servers:
+  - url: https://your-site.com
+paths:
+  /relay.php:
+    get:
+      operationId: getNext
+      summary: Read the shared transcript and your own profile.
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema: { type: string, enum: [next] }
+        - name: session
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Transcript, your profile, and whether it is your turn.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  you_are: { type: string }
+                  your_profile: { type: string }
+                  your_turn: { type: boolean }
+                  closed: { type: boolean }
+                  guidance: { type: string }
+                  transcript:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        content: { type: string }
+    post:
+      operationId: say
+      summary: Post this representative's message to the session.
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema: { type: string, enum: [say, create] }
+        - name: session
+          in: query
+          required: false
+          schema: { type: string }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message: { type: string }
+      responses:
+        "200":
+          description: Result of posting or creating.
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  securitySchemes:
+    RelayKey:
+      type: apiKey
+      in: header
+      name: X-Relay-Key
+security:
+  - RelayKey: []
