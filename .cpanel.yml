@@ -1,0 +1,8 @@
+---
+# Namecheap / cPanel Git Version Control deployment config.
+# Replace YOUR_CPANEL_USERNAME with your cPanel account username.
+# Deploy path is typically /home/<username>/public_html/
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/YOUR_CPANEL_USERNAME/public_html/
+    - /bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.well-known' ./ $DEPLOYPATH
